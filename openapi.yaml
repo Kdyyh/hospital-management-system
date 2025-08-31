@@ -1,0 +1,349 @@
+openapi: 3.0.2
+info:
+  title: Hospital Backend API
+  version: "1.0.0"
+  description: |
+    This OpenAPI document describes the endpoints exposed by the
+    hospital backend service.  The API implements the contract
+    defined by the front‑end mock and includes routes for
+    authentication, patient and department management, queue
+    operations, inquiries and messaging.
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+paths:
+  /api/auth/login:
+    post:
+      summary: Authenticate a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful authentication
+  /api/admin/dashboard:
+    get:
+      summary: Retrieve dashboard metrics for administrators
+      responses:
+        '200':
+          description: KPI metrics returned
+  /api/patients:
+    get:
+      summary: List patients (admins only)
+      parameters:
+        - in: query
+          name: deptId
+          schema:
+            type: string
+          description: Optional group/department filter
+      responses:
+        '200':
+          description: A list of patients
+  /api/patients/export:
+    get:
+      summary: Export patients list (admins only)
+      responses:
+        '200':
+          description: Successful export
+  /api/queue/item/update-status:
+    post:
+      summary: Update the status of a queue item (patients)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                status:
+                  type: string
+      responses:
+        '200':
+          description: Status updated
+  /api/admin/queue/item/update-status:
+    post:
+      summary: Update status of a queue item (admins)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                status:
+                  type: string
+      responses:
+        '200':
+          description: Status updated and queue progressed
+  /api/inquiries:
+    get:
+      summary: List inquiries (admin)
+      responses:
+        '200':
+          description: A list of inquiries
+  /api/patient/inquiries:
+    get:
+      summary: List patient inquiries (patient)
+      responses:
+        '200':
+          description: A list of patient inquiries
+  /api/patient/inquiries/create:
+    post:
+      summary: Create a new patient inquiry
+      responses:
+        '200':
+          description: Inquiry created
+  /api/messages:
+    get:
+      summary: List system messages for the current user
+      responses:
+        '200':
+          description: A list of messages
+
+  # Group invite endpoints: listing and creation
+  /api/groups/invites:
+    get:
+      summary: List group invites
+      responses:
+        '200':
+          description: A list of group invites
+    post:
+      summary: Create a new group invite
+      responses:
+        '200':
+          description: Invite created
+
+  # Bind by invite – validate an invite code and return group info
+  /api/bind/by-invite:
+    post:
+      summary: Validate an invite code and return group information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                invite_id:
+                  type: string
+                action:
+                  type: string
+                  description: Optional action, e.g. "bind"
+      responses:
+        '200':
+          description: Group information returned
+
+  # Transfer request endpoints: listing and creation
+  /api/groups/transfer-requests:
+    get:
+      summary: List transfer requests
+      responses:
+        '200':
+          description: A list of transfer requests
+    post:
+      summary: Create a transfer request
+      responses:
+        '200':
+          description: Transfer request created
+/api/auth/wx-login:
+  post:
+    summary: WeChat one-tap login/register
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code: { type: string }
+    responses:
+      '200':
+        description: OK
+/api/auth/wx-complete-profile:
+  post:
+    summary: Complete profile after WeChat register
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name: { type: string }
+              sex: { type: string }
+              age: { type: integer }
+              phone: { type: string }
+    responses:
+      '200':
+        description: OK
+/api/auth/wx-bind-phone:
+  post:
+    summary: Bind phone number from WeChat encryptedData
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              encryptedData: { type: string }
+              iv: { type: string }
+    responses:
+      '200':
+        description: OK
+
+/api/auth/refresh:
+  post:
+    summary: Refresh JWT access token
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              refresh: { type: string }
+    responses:
+      '200':
+        description: OK
+/api/auth/logout:
+  post:
+    summary: Logout (blacklist refresh token or all user's refresh tokens)
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              refresh: { type: string, description: Refresh token to blacklist. If omitted, blacklist all for current user. }
+    responses:
+      '200':
+        description: OK
+/api/kpi/my:
+  get:
+    summary: Get KPI for current user's department
+    responses: { '200': { description: OK } }
+/api/kpi/department:
+  get:
+    summary: Get KPI for current admin/core user's department
+    responses: { '200': { description: OK } }
+/api/kpi/all:
+  get:
+    summary: Get KPI for all departments (super only)
+    responses: { '200': { description: OK } }
+
+/api/department/doctors:
+  get:
+    summary: Get doctor list for current user's department
+    parameters:
+      - in: query
+        name: deptId
+        schema: { type: integer }
+        required: false
+        description: Super users can specify a department id to view its doctors.
+    responses:
+      '200':
+        description: OK
+
+/api/department/doctors:
+  get:
+    summary: Get doctor list for current user's department
+    parameters:
+      - in: query
+        name: deptId
+        schema: { type: integer }
+        required: false
+        description: Super users can specify a department id to view its doctors.
+      - in: query
+        name: q
+        schema: { type: string }
+        required: false
+        description: Search by doctor name/username (icontains).
+      - in: query
+        name: onDutyOnly
+        schema: { type: boolean }
+        required: false
+        description: Only show doctors who are currently on duty.
+      - in: query
+        name: page
+        schema: { type: integer, minimum: 1 }
+        required: false
+      - in: query
+        name: pageSize
+        schema: { type: integer, minimum: 1, maximum: 200 }
+        required: false
+    responses:
+      '200':
+        description: OK
+
+/api/consult/open:
+  post:
+    summary: Open a consultation between doctor and patient (same department)
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              targetUserId: { type: integer }
+              type: { type: string, enum: [patient, doctor] }
+    responses: { '200': { description: OK } }
+/api/consult/list:
+  get:
+    summary: List consultations for current user
+    parameters:
+      - in: query; name: status; schema: { type: string, enum: [open, replied, closed] }
+      - in: query; name: q; schema: { type: string }
+      - in: query; name: deptId; schema: { type: integer }
+      - in: query; name: page; schema: { type: integer }
+      - in: query; name: pageSize; schema: { type: integer }
+    responses: { '200': { description: OK } }
+/api/consult/send:
+  post:
+    summary: Send message in a consultation (text + files)
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              consultId: { type: integer }
+              content: { type: string }
+              files: { type: array, items: { type: string, format: binary } }
+    responses: { '200': { description: OK } }
+/api/consult/read:
+  post:
+    summary: Mark messages read in a consultation
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              consultId: { type: integer }
+              upToMessageId: { type: integer }
+    responses: { '200': { description: OK } }
+/api/consult/history:
+  get:
+    summary: Get message history in a consultation
+    parameters:
+      - in: query; name: consultId; schema: { type: integer }
+      - in: query; name: page; schema: { type: integer }
+      - in: query; name: pageSize; schema: { type: integer }
+    responses: { '200': { description: OK } }

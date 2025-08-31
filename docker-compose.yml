@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    # Use the default CMD defined in the Dockerfile to run migrations,
+    # load seeds and start the server.  Mounting a volume is optional for
+    # live reload during development.
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+
+  # 新增：MySQL 数据库服务
+  #
+  # 默认情况下系统使用 SQLite 数据库，但在生产环境下需要使用 MySQL 来提升性能、
+  # 支持高并发和数据量增长。该服务将根据 .env 中提供的 MYSQL_ 前缀变量初始化数据库。
+  db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${MYSQL_NAME:-hospital}
+      MYSQL_USER: ${MYSQL_USER:-user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+volumes:
+  db_data:

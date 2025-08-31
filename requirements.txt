@@ -1,0 +1,25 @@
+Django==4.2.7
+djangorestframework==3.14.0
+drf-yasg==1.21.5
+python-dotenv==1.0.0
+dj-database-url==1.1.1
+pytest==7.4.0
+pytest-django==4.5.2
+PyYAML==6.0
+
+# MySQL database driver for Django.  This package is required if
+# you intend to run the project against a MySQL server.  Ensure
+# that the MySQL client libraries are installed on your system.
+mysqlclient>=2.2.0
+djangorestframework-simplejwt>=5.3.1
+django-cors-headers>=4.4.0
+requests>=2.32.0
+pycryptodome>=3.20.0
+bandit>=1.7.9
+pip-audit>=2.7.3
+django-redis>=5.4.0
+whitenoise>=6.7.0
+channels>=4.0.0
+channels-redis>=4.2.0
+bleach>=6.1.0
+django-prometheus>=2.3.1

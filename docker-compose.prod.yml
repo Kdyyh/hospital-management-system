@@ -1,0 +1,53 @@
+version: "3.9"
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    networks: [appnet]
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks: [appnet]
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env.production
+    depends_on: [db, redis]
+    ports:
+      - "8000:8000"      bash -lc "python manage.py migrate &&
+                gunicorn hospital.asgi:application -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000"
+    volumes:
+      - staticdata:/app/staticfiles
+      - mediadata:/app/media
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks: [appnet]
+volumes:
+  dbdata:
+networks:
+  appnet:
+    driver: bridge
+
+
+scheduler:
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file: .env.production
+  depends_on: [db, redis, web]
+  command: >
+    bash -lc "while true; do python manage.py refresh_caches; sleep 300; done"
+  networks: [appnet]
