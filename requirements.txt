@@ -7,6 +7,8 @@ pytest==7.4.0
 pytest-django==4.5.2
 PyYAML==6.0
 daphne==4.1.2
+gunicorn>=21.2.0
+uvicorn[standard]>=0.30.0
 
 # MySQL database driver for Django. This package is required if
 # you intend to run the project against a MySQL server. Ensure
